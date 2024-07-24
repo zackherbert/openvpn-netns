@@ -1,0 +1,34 @@
+#!/bin/bash
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
+NETNS=$1
+
+if [ -z "$NETNS" ]; then
+    echo "$0 should be run with a netns parameter."
+    exit -1
+fi
+
+NETNS_FOLDER=/etc/openvpn-netns/netns/$NETNS
+
+PARAMS_FILE=$NETNS_FOLDER/params
+CONF_FILE=$NETNS_FOLDER/config.ovpn
+
+if [ ! -e "$PARAMS_FILE" ]; then
+    echo "File '$PARAMS_FILE' is not found"
+    exit -1
+fi
+
+if [ ! -e "$CONF_FILE" ]; then
+    echo "File '$CONF_FILE' is not found"
+    exit -1
+fi
+
+read PARAMS < $PARAMS_FILE
+
+echo "Running openvpn-netns on netns $NETNS with params: $PARAMS"
+
+NETNS=$NETNS /usr/local/bin/openvpn-netns --config $CONF_FILE $PARAMS
