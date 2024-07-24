@@ -13,13 +13,13 @@ namespace.
 Installing
 ----------
 
-    run `make install` as root.
+Run `sudo make install`.
+Run `sudo systemctl daemon-reload` to refresh the systemd service if necessary.
 
 Uninstalling
 ----------
 
-    run `make uninstall` as root.
-
+Run `sudo make uninstall`.
 
 Systemd service
 ---------------
@@ -28,14 +28,14 @@ To create a new service which will start an OpenVPN connection in
 a new network namespace:
 
     Choose a name for the netns (in this example: vpn0)
-    Create the corresponding folder in /etc/openvpn-netns/netns:
+    Create the corresponding folder in /etc/openvpn-netns/:
 
-    sudo mkdir -p /etc/openvpn-netns/netns/vpn0
+    sudo mkdir -p /etc/openvpn-netns/vpn0
 
     Put in that folder:
 
     - a `params` file containing the params used by openvpn
-      echo "--auth-user-pass pass --dev tun0" > /etc/openvpn-netns/netns/vpn0/params
+      echo "--auth-user-pass pass --dev tun0" > /etc/openvpn-netns/vpn0/params
 
     - a `config.ovpn` OpenVPN configuration file
 
@@ -52,6 +52,16 @@ You can check the logs with:
 You can enable it at boot with:
 
     sudo systemctl enable openvpn-netns-client@vpn0.service
+
+Systemd service with multiple failover backend vpn providers
+------------------------------------------------------------
+
+The systemd service can be configured to try multiple vpn providers,
+trying another one in the list if the current one fails.
+
+To do that, instead of providing the `config.ovpn` file and `params` file to the
+`/etc/openvpn-netns/vpn0` folder, you can put multiple folders in there, each containing
+the necessary files. The systemd service script will try each folder in succession.
 
 Scripts
 -------
@@ -105,7 +115,6 @@ even if openvpn reconnects immediately, all apps started via `ip netns
 exec vpn COMMAND` will break and will have to be restarted. This is
 because the former namespace to which they were attached is destroyed.
 
-
 Settings
 --------
 
@@ -124,7 +133,6 @@ the namespace. To override them, create file
 file doesn't exist, it is automatically generated from DNS settings
 from the server when the connection is started and deleted when the
 connection is terminated.
-
 
 IPv6
 ----
