@@ -1,7 +1,7 @@
 openvpn-netns
 =============
 
-Start OpenVPN connection inside Linux network namespace.
+Start an OpenVPN connection inside a Linux network namespace (netns).
 
 These scripts allow some programs to use the VPN connection while the
 rest of the system uses the normal network connection. For programs
@@ -10,6 +10,48 @@ is through the VPN tunnel. This prevents VPN leaks. Multiple VPN
 connections can be opened at the same time each in its separate
 namespace.
 
+Installing
+----------
+
+    run `make install` as root.
+
+Uninstalling
+----------
+
+    run `make uninstall` as root.
+
+
+Systemd service
+---------------
+
+To create a new service which will start an OpenVPN connection in
+a new network namespace:
+
+    Choose a name for the netns (in this example: vpn0)
+    Create the corresponding folder in /etc/openvpn-netns/netns:
+
+    sudo mkdir -p /etc/openvpn-netns/netns/vpn0
+
+    Put in that folder:
+
+    - a `params` file containing the params used by openvpn
+      echo "--auth-user-pass pass --dev tun0" > /etc/openvpn-netns/netns/vpn0/params
+
+    - a `config.ovpn` OpenVPN configuration file
+
+    - a `pass` file containing the password
+
+Once the files are in place, you can start the service with:
+
+    sudo systemctl start openvpn-netns-client@vpn0.service
+
+You can check the logs with:
+
+    journalctl -u openvpn-netns-client@vpn0.service -f
+
+You can enable it at boot with:
+
+    sudo systemctl enable openvpn-netns-client@vpn0.service
 
 Scripts
 -------
@@ -91,13 +133,6 @@ IPv6 support over the VPN tunnel is currently turned off by default,
 because IPv6 routing code is untested and should be considered
 experimental. To turn on IPv6 support, use command line option
 `--setenv IPV6 on`.
-
-
-Installing
-----------
-
-    sudo ln -s "$PWD"/openvpn-netns /usr/local/bin/openvpn-netns
-    sudo ln -s "$PWD"/openvpn-netns-shell /usr/local/bin/openvpn-netns-shell
 
 
 [netns-exec]: https://github.com/pekman/netns-exec
